@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Valise | Mobile Concierge</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --green-deep: #1a3a28;
+            --green-mid: #2d5a3d;
+            --gold: #c9973a;
+            --gold-light: #e8c06a;
+            --cream: #faf8f3;
+            --white: #ffffff;
+            --text-muted: #708075;
+            --card-border: rgba(0,0,0,0.04);
+            --danger: #dc3545;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'DM Sans', sans-serif; background-color: var(--cream); color: var(--green-deep); padding-bottom: 90px; }
+
+        header {
+            background: var(--green-deep); color: var(--white);
+            padding: 25px 20px 20px 20px; border-bottom-left-radius: 24px; border-bottom-right-radius: 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06); position: sticky; top: 0; z-index: 100;
+        }
+        .header-top { display: flex; justify-content: space-between; align-items: center; }
+        .brand { font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 600; letter-spacing: 1px; }
+        .brand span { color: var(--gold); }
+        .current-city { font-size: 13px; background: rgba(255,255,255,0.1); padding: 5px 14px; border-radius: 20px; border: 1px solid rgba(201,151,58,0.3); margin-top: 10px; display: inline-block; }
+
+        .btn-load { background: var(--gold); border: none; color: var(--green-deep); padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+
+        main { padding: 20px; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        .section-title { font-weight: 700; margin-bottom: 20px; font-family: 'Cormorant Garamond', serif; font-size: 24px; }
+
+        /* Cards Diários por Data */
+        .day-card { background: var(--white); border-radius: 18px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); border: 1px solid var(--card-border); margin-bottom: 20px; overflow: hidden; }
+        .day-card-header { background: rgba(45,90,61,0.05); padding: 12px 16px; font-weight: 700; font-size: 14px; color: var(--green-mid); border-bottom: 1px solid rgba(45,90,61,0.05); display: flex; align-items: center; gap: 8px; }
+        
+        .day-activity-item { padding: 14px 16px; border-bottom: 1px solid rgba(0,0,0,0.03); }
+        .day-activity-item:last-child { border-bottom: none; }
+        .activity-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+        .activity-time { font-size: 12px; font-weight: 700; color: var(--gold); }
+        .activity-title { font-size: 15px; font-weight: 700; color: var(--green-deep); }
+        .activity-desc { font-size: 13px; color: var(--text-muted); line-height: 1.4; }
+
+        .card-form { background: var(--white); padding: 20px; border-radius: 18px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); border: 1px solid var(--card-border); margin-bottom: 20px; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 11px; font-weight: 700; margin-bottom: 6px; text-transform: uppercase; color: var(--green-mid); letter-spacing: 0.5px; }
+        .input-row { display: flex; gap: 10px; }
+        .form-control { width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid rgba(45,90,61,0.15); background: var(--cream); font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--green-deep); outline: none; }
+        .form-control:focus { border-color: var(--gold); }
+        .btn-submit { width: 100%; background: var(--green-deep); color: var(--white); border: none; padding: 14px; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; transition: 0.2s; }
+        .btn-submit:active { background: var(--green-mid); }
+
+        .finance-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
+        .finance-card { background: var(--white); padding: 20px; border-radius: 18px; border: 1px solid var(--card-border); box-shadow: 0 4px 15px rgba(0,0,0,0.02); }
+        .finance-card.highlight { background: var(--green-deep); color: var(--white); }
+        .finance-card label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); display: block; margin-bottom: 5px; }
+        .finance-card.highlight label { color: var(--gold-light); }
+        .finance-card .value { font-size: 24px; font-weight: 700; }
+
+        /* ===== GASTO POR DIA ===== */
+        .day-spend-list { display: flex; flex-direction: column; gap: 12px; }
+        .day-spend-card { background: var(--white); border-radius: 16px; border: 1px solid var(--card-border); box-shadow: 0 2px 12px rgba(0,0,0,0.03); padding: 16px 18px; }
+        .day-spend-card.today { border-left: 4px solid var(--gold); }
+        .day-spend-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .day-spend-date { font-size: 13px; font-weight: 700; color: var(--green-mid); display: flex; align-items: center; gap: 6px; }
+        .day-spend-date .today-badge { background: var(--gold); color: var(--green-deep); font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px; }
+        .day-spend-total { font-size: 17px; font-weight: 700; color: var(--green-deep); }
+        .day-spend-bar-bg { background: rgba(45,90,61,0.08); border-radius: 6px; height: 6px; overflow: hidden; }
+        .day-spend-bar-fill { background: linear-gradient(90deg, var(--gold), var(--gold-light)); height: 100%; border-radius: 6px; transition: width 0.4s ease; }
+        .day-spend-cats { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
+        .day-cat-chip { font-size: 11px; background: var(--cream); border-radius: 8px; padding: 3px 9px; color: var(--text-muted); font-weight: 600; }
+        .finance-empty { text-align: center; padding: 50px 20px; color: var(--text-muted); font-size: 13px; }
+        .finance-empty i { font-size: 36px; display: block; margin-bottom: 12px; color: rgba(201,151,58,0.3); }
+        .finance-summary-bar { background: var(--green-deep); border-radius: 18px; padding: 18px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; color: var(--white); }
+        .finance-summary-bar .fsb-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gold-light); margin-bottom: 4px; }
+        .finance-summary-bar .fsb-value { font-size: 20px; font-weight: 700; }
+
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0; height: 70px;
+            background: var(--white); border-top: 1px solid rgba(0,0,0,0.05);
+            display: flex; justify-content: space-around; align-items: center;
+            z-index: 1000; box-shadow: 0 -4px 20px rgba(0,0,0,0.03);
+        }
+        .nav-item {
+            background: none; border: none; color: var(--text-muted);
+            display: flex; flex-direction: column; align-items: center;
+            gap: 4px; font-size: 11px; font-weight: 500; cursor: pointer; width: 33.33%;
+        }
+        .nav-item i { font-size: 18px; transition: transform 0.2s; }
+        .nav-item.active { color: var(--green-deep); font-weight: 700; }
+        .nav-item.active i { color: var(--gold); transform: translateY(-2px); }
+
+        /* ===== LINKS & ENDEREÇOS ===== */
+        .link-form-card { background: var(--white); padding: 20px; border-radius: 18px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); border: 1px solid var(--card-border); margin-bottom: 16px; }
+        .link-form-card h3 { font-size: 15px; margin-bottom: 16px; color: var(--green-deep); display: flex; align-items: center; gap: 8px; }
+
+        .link-cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+        .link-cat-btn { background: var(--cream); border: 1.5px solid transparent; border-radius: 10px; padding: 10px 8px; font-size: 12px; font-weight: 600; color: var(--text-muted); cursor: pointer; text-align: center; transition: 0.2s; line-height: 1.3; }
+        .link-cat-btn.selected { border-color: var(--gold); background: rgba(201,151,58,0.08); color: var(--green-deep); }
+
+        .link-card { background: var(--white); border-radius: 16px; border: 1px solid var(--card-border); box-shadow: 0 4px 15px rgba(0,0,0,0.02); margin-bottom: 12px; overflow: hidden; }
+        .link-card-header { padding: 12px 16px 10px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(0,0,0,0.04); }
+        .link-cat-badge { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+        .link-card-name { font-weight: 700; font-size: 14px; color: var(--green-deep); flex: 1; }
+        .link-card-trip { font-size: 11px; background: rgba(201,151,58,0.12); color: var(--gold); border-radius: 6px; padding: 2px 8px; font-weight: 600; white-space: nowrap; }
+        .link-card-body { padding: 10px 16px 12px; display: flex; flex-direction: column; gap: 6px; }
+        .link-detail-row { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: var(--text-muted); }
+        .link-detail-row i { width: 14px; text-align: center; margin-top: 2px; color: var(--gold); flex-shrink: 0; font-size: 12px; }
+        .link-actions { display: flex; gap: 8px; padding: 0 16px 14px; }
+        .btn-link-action { flex: 1; padding: 9px 6px; border-radius: 10px; border: none; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; }
+        .btn-map   { background: rgba(45,90,61,0.07);  color: var(--green-mid); }
+        .btn-site  { background: rgba(201,151,58,0.10); color: #a07828; }
+        .btn-edit  { background: rgba(45,90,61,0.07);  color: var(--green-mid); }
+        .btn-del   { background: rgba(220,53,69,0.07);  color: var(--danger); }
+
+        .links-filter-bar { display: flex; gap: 8px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 4px; -webkit-overflow-scrolling: touch; }
+        .filter-chip { background: var(--white); border: 1.5px solid rgba(45,90,61,0.12); border-radius: 20px; padding: 6px 14px; font-size: 12px; font-weight: 600; color: var(--text-muted); white-space: nowrap; cursor: pointer; transition: 0.2s; }
+        .filter-chip.active { background: var(--green-deep); color: var(--white); border-color: var(--green-deep); }
+
+        .links-empty { text-align: center; padding: 50px 20px; color: var(--text-muted); font-size: 13px; }
+        .links-empty i { font-size: 36px; display: block; margin-bottom: 12px; color: rgba(201,151,58,0.3); }
+
+        .btn-add-link-fab { position: fixed; bottom: 82px; right: 20px; width: 52px; height: 52px; background: var(--gold); border: none; border-radius: 50%; color: var(--green-deep); font-size: 20px; cursor: pointer; box-shadow: 0 4px 16px rgba(201,151,58,0.4); z-index: 999; display: none; align-items: center; justify-content: center; transition: transform 0.2s; }
+        .btn-add-link-fab:active { transform: scale(0.92); }
+
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000; align-items: flex-end; }
+        .modal-overlay.open { display: flex; }
+        .modal-sheet { background: var(--white); border-radius: 24px 24px 0 0; padding: 24px 20px 36px; width: 100%; max-height: 90vh; overflow-y: auto; animation: slideUp 0.3s ease; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .modal-handle { width: 40px; height: 4px; background: rgba(0,0,0,0.12); border-radius: 4px; margin: 0 auto 20px; }
+        .modal-title { font-family: 'Cormorant Garamond', serif; font-size: 22px; margin-bottom: 20px; color: var(--green-deep); }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-top">
+            <div class="brand">Valise<span>.</span></div>
+            <label class="btn-load">
+                <i class="fas fa-file-import"></i> Abrir Roteiro
+                <input type="file" id="file-import" accept=".valise,.json" style="display: none;" onchange="importarViagem(event)">
+            </label>
+        </div>
+        <div id="lbl-cidade" class="current-city"><i class="fas fa-map-marker-alt"></i> Aguardando ficheiro de viagem...</div>
+    </header>
+
+    <main>
+        <div id="tab-roteiro" class="tab-content active">
+            <div class="section-title">Meu Cronograma</div>
+            <div id="mobile-cards-container">
+                <p style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 20px;">Carrega o ficheiro JSON para visualizar os cartões diários por data.</p>
+            </div>
+        </div>
+
+        <div id="tab-lancamentos" class="tab-content">
+            <div class="section-title">Atualizar Minha Viagem</div>
+            
+            <div class="card-form">
+                <h3 style="font-size: 15px; margin-bottom: 15px; color: var(--green-deep); display: flex; align-items: center; gap: 8px;"><i class="fas fa-wallet" style="color: var(--gold);"></i> Registrar Nova Despesa</h3>
+                <form id="form-gasto" onsubmit="adicionarGasto(event)">
+                    <div class="form-group">
+                        <label>Data do Gasto</label>
+                        <input type="date" class="form-control" required id="date-gasto">
+                    </div>
+                    <div class="form-group">
+                        <label>Valor e Moeda</label>
+                        <div class="input-row">
+                            <input type="number" step="0.01" class="form-control" placeholder="0,00" required id="num-valor" style="flex: 2;">
+                            <select class="form-control" id="sel-moeda" style="flex: 1;">
+                                <option value="EUR">EUR (€)</option>
+                                <option value="USD">USD ($)</option>
+                                <option value="BRL">BRL (R$)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Categoria / Classe</label>
+                        <select class="form-control" id="sel-gasto-classe" required>
+                            <option value="Refeição">Refeição 🍔</option>
+                            <option value="Transporte">Transporte 🚇</option>
+                            <option value="Lazer">Lazer / Ingressos 🎟️</option>
+                            <option value="Compras">Compras 🛍️</option>
+                            <option value="Hospedagem">Hospedagem 🏨</option>
+                            <option value="Outros">Outros 💵</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Descrição do Gasto</label>
+                        <input type="text" class="form-control" placeholder="Ex: Almoço, Bilhete de Metro..." required id="txt-gasto-desc">
+                    </div>
+                    <button type="submit" class="btn-submit">Salvar Despesa</button>
+                </form>
+            </div>
+
+            <div class="card-form">
+                <h3 style="font-size: 15px; margin-bottom: 15px; color: var(--green-deep); display: flex; align-items: center; gap: 8px;"><i class="fas fa-calendar-plus" style="color: var(--gold);"></i> Adicionar Atividade Extra</h3>
+                <form id="form-atividade" onsubmit="adicionarAtividade(event)">
+                    <div class="form-group">
+                        <label>Data da Atividade</label>
+                        <input type="date" class="form-control" required id="date-atividade">
+                    </div>
+                    <div class="form-group">
+                        <label>Horário</label>
+                        <input type="time" class="form-control" required id="time-hora">
+                    </div>
+                    <div class="form-group">
+                        <label>Título / O que vai fazer?</label>
+                        <input type="text" class="form-control" placeholder="Ex: Passeio ao pôr do sol" required id="txt-ativ-titulo">
+                    </div>
+                    <div class="form-group">
+                        <label>Cidade / Local</label>
+                        <input type="text" class="form-control" placeholder="Ex: Florença" id="txt-ativ-cidade">
+                    </div>
+                    <button type="submit" class="btn-submit" style="background: var(--gold); color: var(--green-deep);">Adicionar ao Roteiro</button>
+                </form>
+            </div>
+            
+            <button class="btn-submit" onclick="exportarParaPremium()" style="background: #c9973a; color: #fff; box-shadow: 0 4px 15px rgba(201,151,58,0.2); border: none;"><i class="fas fa-file-export"></i> Exportar para Premium Pro</button>
+        </div>
+
+        <div id="tab-financeiro" class="tab-content">
+            <div class="section-title">Gastos por Dia</div>
+            <div class="finance-summary-bar" id="finance-summary-bar" style="display:none;">
+                <div>
+                    <div class="fsb-label">Total Gasto na Viagem</div>
+                    <div class="fsb-value" id="lbl-gasto-total">--</div>
+                </div>
+                <div style="text-align:right;">
+                    <div class="fsb-label">Dias com Gastos</div>
+                    <div class="fsb-value" id="lbl-dias-count">--</div>
+                </div>
+            </div>
+            <div class="day-spend-list" id="day-spend-list">
+                <div class="finance-empty">
+                    <i class="fas fa-wallet"></i>
+                    Carregue um roteiro ou registre despesas para ver o resumo por dia.
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-links" class="tab-content">
+            <div class="section-title">Links & Endereços</div>
+
+            <!-- Chips de filtro por categoria -->
+            <div class="links-filter-bar" id="links-filter-bar">
+                <div class="filter-chip active" data-cat="" onclick="filtrarLinks(this)">Todos</div>
+                <div class="filter-chip" data-cat="Consulado"  onclick="filtrarLinks(this)">🏛️ Consulado</div>
+                <div class="filter-chip" data-cat="Museu"      onclick="filtrarLinks(this)">🖼️ Museu</div>
+                <div class="filter-chip" data-cat="Transporte" onclick="filtrarLinks(this)">🚌 Transporte</div>
+                <div class="filter-chip" data-cat="Saúde"      onclick="filtrarLinks(this)">🏥 Saúde</div>
+                <div class="filter-chip" data-cat="Hotel"      onclick="filtrarLinks(this)">🏨 Hotel</div>
+                <div class="filter-chip" data-cat="Restaurante"onclick="filtrarLinks(this)">🍽️ Restaurante</div>
+                <div class="filter-chip" data-cat="Compras"    onclick="filtrarLinks(this)">🛍️ Compras</div>
+                <div class="filter-chip" data-cat="Emergência" onclick="filtrarLinks(this)">🚨 Emergência</div>
+                <div class="filter-chip" data-cat="Outro"      onclick="filtrarLinks(this)">📌 Outro</div>
+            </div>
+
+            <!-- Lista de links -->
+            <div id="links-list"></div>
+        </div>
+    </main>
+
+    <!-- Botão flutuante (FAB) para adicionar link -->
+    <button class="btn-add-link-fab" id="btn-add-fab" onclick="abrirModalLink(null)" aria-label="Adicionar link">
+        <i class="fas fa-plus"></i>
+    </button>
+
+    <!-- Modal / Bottom Sheet de cadastro -->
+    <div class="modal-overlay" id="modal-link" onclick="fecharModalLink(event)">
+        <div class="modal-sheet">
+            <div class="modal-handle"></div>
+            <div class="modal-title" id="modal-link-titulo">Novo Link</div>
+            <input type="hidden" id="link-edit-id">
+
+            <div class="form-group">
+                <label>Nome / Local *</label>
+                <input type="text" class="form-control" id="link-nome" placeholder="Ex: Consulado dos EUA">
+            </div>
+
+            <div class="form-group">
+                <label>Categoria</label>
+                <div class="link-cat-grid" id="link-cat-grid">
+                    <div class="link-cat-btn selected" data-val="Consulado"  onclick="selecionarCat(this)">🏛️ Consulado / Embaixada</div>
+                    <div class="link-cat-btn" data-val="Museu"      onclick="selecionarCat(this)">🖼️ Museu / Atração</div>
+                    <div class="link-cat-btn" data-val="Transporte" onclick="selecionarCat(this)">🚌 Transporte</div>
+                    <div class="link-cat-btn" data-val="Saúde"      onclick="selecionarCat(this)">🏥 Saúde / Hospital</div>
+                    <div class="link-cat-btn" data-val="Hotel"      onclick="selecionarCat(this)">🏨 Hotel</div>
+                    <div class="link-cat-btn" data-val="Restaurante"onclick="selecionarCat(this)">🍽️ Restaurante</div>
+                    <div class="link-cat-btn" data-val="Compras"    onclick="selecionarCat(this)">🛍️ Compras</div>
+                    <div class="link-cat-btn" data-val="Emergência" onclick="selecionarCat(this)">🚨 Emergência</div>
+                    <div class="link-cat-btn" data-val="Outro"      onclick="selecionarCat(this)">📌 Outro</div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Endereço</label>
+                <input type="text" class="form-control" id="link-endereco" placeholder="Ex: Av. Paulista, 1000 - São Paulo">
+            </div>
+            <div class="form-group">
+                <label>Telefone</label>
+                <input type="tel" class="form-control" id="link-telefone" placeholder="Ex: +55 (11) 0000-0000">
+            </div>
+            <div class="form-group">
+                <label>Website / URL</label>
+                <input type="url" class="form-control" id="link-url" placeholder="https://...">
+            </div>
+            <div class="form-group">
+                <label>Observações</label>
+                <input type="text" class="form-control" id="link-obs" placeholder="Ex: Seg a Sex, 9h–17h. Levar passaporte.">
+            </div>
+
+            <button class="btn-submit" onclick="salvarLink()" style="margin-top: 8px;">
+                <i class="fas fa-save"></i> Salvar
+            </button>
+            <button onclick="fecharModalLink()" style="width:100%; margin-top:10px; background:none; border:1px solid rgba(45,90,61,0.15); border-radius:10px; padding:12px; color:var(--text-muted); font-weight:600; cursor:pointer; font-size:14px;">
+                Cancelar
+            </button>
+        </div>
+    </div>
+
+    <nav class="bottom-nav" style="justify-content: space-around;">
+        <button class="nav-item active" onclick="mudarAba('roteiro', this)">
+            <i class="fas fa-route"></i> Roteiro
+        </button>
+        <button class="nav-item" onclick="mudarAba('lancamentos', this)">
+            <i class="fas fa-pen-to-square"></i> Lançar
+        </button>
+        <button class="nav-item" onclick="mudarAba('financeiro', this)">
+            <i class="fas fa-chart-pie"></i> Resumo
+        </button>
+        <button class="nav-item" onclick="mudarAba('links', this)">
+            <i class="fas fa-link"></i> Links
+        </button>
+    </nav>
+
+    <script>
+        // Armazenamento em memória unificado no padrão nativo do Premium
+        let originalPremiumData = {
+            principal: { budget: 0, baseCurrency: "BRL", tripName: "Minha Viagem" },
+            events: [],
+            checklist: [],
+            budget: {}
+        };
+
+        let linksData = JSON.parse(localStorage.getItem('valise_links_v1')) || [];
+        let linkFiltroAtivo = '';
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const hoje = new Date().toISOString().split('T')[0];
+            document.getElementById('date-gasto').value = hoje;
+            document.getElementById('date-atividade').value = hoje;
+        });
+
+        function mudarAba(tabId, botao) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
+            
+            const targetTab = document.getElementById('tab-' + tabId);
+            if (targetTab) targetTab.classList.add('active');
+            if (botao) botao.classList.add('active');
+
+            // Mostra FAB somente na aba de links
+            const fab = document.getElementById('btn-add-fab');
+            if (fab) fab.style.display = (tabId === 'links') ? 'flex' : 'none';
+
+            if (tabId === 'links') renderizarLinks();
+        }
+
+        function formatarDataBR(dataStr) {
+            if (!dataStr) return "";
+            const partes = dataStr.split('-');
+            return partes.length === 3 ? `${partes[2]}/${partes[1]}/${partes[0]}` : dataStr;
+        }
+
+        // Importador universal inteligente
+        function importarViagem(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    let raw = JSON.parse(e.target.result);
+                    
+                    // Normalização estrutural imediata
+                    originalPremiumData.events = raw.events || [];
+                    originalPremiumData.checklist = raw.checklist || [];
+                    originalPremiumData.budget = raw.budget || {};
+                    
+                    // Carrega links salvos no Premium (normaliza campos Premium → Mobile)
+                    if (raw.links && raw.links.length > 0) {
+                        linksData = raw.links.map(l => ({
+                            id:       l.id       || Date.now().toString() + Math.random(),
+                            nome:     l.nome     || l.name    || '',
+                            cat:      l.cat      || 'Outro',
+                            endereco: l.endereco || l.address || '',
+                            telefone: l.telefone || l.phone   || '',
+                            url:      l.url      || '',
+                            obs:      l.obs      || l.notes   || '',
+                        }));
+                        salvarLinksStorage();
+                    }
+                    
+                    if (raw.principal) {
+                        originalPremiumData.principal = raw.principal;
+                    } else {
+                        // Reconstrução de fallback caso venha de um backup fragmentado antigo
+                        const deViagem = originalPremiumData.events.find(ev => ev.trip && ev.trip !== "Viagem");
+                        originalPremiumData.principal = {
+                            budget: raw.allBudgets ? Object.values(raw.allBudgets).reduce((a,b) => a+b, 0) : 10000,
+                            baseCurrency: "BRL",
+                            tripName: deViagem ? deViagem.trip : "Minha Viagem"
+                        };
+                    }
+
+                    // Sincroniza datas dos inputs
+                    const primeiraData = originalPremiumData.events.find(ev => ev.data);
+                    if (primeiraData && primeiraData.data) {
+                        document.getElementById('date-gasto').value = primeiraData.data;
+                        document.getElementById('date-atividade').value = primeiraData.data;
+                    }
+
+                    renderizarMobile();
+                    alert(`Roteiro carregado com sucesso!`);
+                } catch (err) {
+                    console.error(err);
+                    alert("Erro ao ler o ficheiro JSON.");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function adicionarGasto(e) {
+            e.preventDefault();
+            if (!originalPremiumData.events) originalPremiumData.events = [];
+
+            const data = document.getElementById('date-gasto').value;
+            const valor = parseFloat(document.getElementById('num-valor').value) || 0;
+            const moeda = document.getElementById('sel-moeda').value;
+            const classe = document.getElementById('sel-gasto-classe').value;
+            const desc = document.getElementById('txt-gasto-desc').value;
+
+            // Insere diretamente no formato mapeado de objetos que o Premium reconhece
+            originalPremiumData.events.push({
+                id: Date.now(),
+                trip: originalPremiumData.principal.tripName || "Viagem",
+                cidade: "",
+                hospedagem: "",
+                data: data,
+                hora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+                desc: desc,
+                classe: classe,
+                valor: valor,
+                moedaOriginal: moeda,
+                valorOriginal: valor,
+                cotacao: 1,
+                meioPagamento: "dinheiro",
+                nomeCartao: "",
+                parcelas: 1,
+                dataPagamento: data
+            });
+
+            renderizarMobile();
+            document.getElementById('num-valor').value = '';
+            document.getElementById('txt-gasto-desc').value = '';
+            alert("Despesa guardada!");
+        }
+
+        function adicionarAtividade(e) {
+            e.preventDefault();
+            if (!originalPremiumData.events) originalPremiumData.events = [];
+
+            const data = document.getElementById('date-atividade').value;
+            const hora = document.getElementById('time-hora').value;
+            const titulo = document.getElementById('txt-ativ-titulo').value;
+            const cidade = document.getElementById('txt-ativ-cidade').value || '';
+
+            originalPremiumData.events.push({
+                id: Date.now(),
+                trip: originalPremiumData.principal.tripName || "Viagem",
+                cidade: cidade,
+                hospedagem: "",
+                data: data,
+                hora: hora,
+                desc: titulo,
+                classe: "Lazer",
+                valor: 0,
+                moedaOriginal: originalPremiumData.principal.baseCurrency || "BRL",
+                valorOriginal: 0,
+                cotacao: 1,
+                meioPagamento: "",
+                nomeCartao: "",
+                parcelas: 1,
+                dataPagamento: ""
+            });
+
+            renderizarMobile();
+            document.getElementById('time-hora').value = '';
+            document.getElementById('txt-ativ-titulo').value = '';
+            document.getElementById('txt-ativ-cidade').value = '';
+            alert("Atividade adicionada ao card diário!");
+        }
+
+        // EXPORTADOR CORRIGIDO: Agora cospe a assinatura exata de dados que o Premium lê!
+        function exportarParaPremium() {
+            if (!originalPremiumData.events || originalPremiumData.events.length === 0) {
+                return alert("Não existem dados disponíveis para exportação.");
+            }
+
+            const payload = {
+                principal: originalPremiumData.principal,
+                events: originalPremiumData.events,
+                checklist: originalPremiumData.checklist,
+                budget: originalPremiumData.budget,
+                links: linksData
+            };
+
+            const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = "sincronizacao_mobile_premium.json";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function renderizarMobile() {
+            const p = originalPremiumData.principal;
+            document.getElementById('lbl-cidade').innerHTML = `<i class="fas fa-map-marker-alt"></i> ${p.tripName || "Minha Viagem"}`;
+
+            const container = document.getElementById('mobile-cards-container');
+            if (originalPremiumData.events && originalPremiumData.events.length > 0) {
+                
+                // Ordenação cronológica total
+                const ordenados = [...originalPremiumData.events].sort((a,b) => {
+                    const d = (a.data || '').localeCompare(b.data || '');
+                    return d !== 0 ? d : (a.hora || '').localeCompare(b.hora || '');
+                });
+
+                // Agrupamento associativo por dia
+                const dias = {};
+                ordenados.forEach(ev => {
+                    const d = ev.data || "Sem Data Fixada";
+                    if (!dias[d]) dias[d] = [];
+                    dias[d].push(ev);
+                });
+
+                let html = "";
+                Object.keys(dias).forEach(chaveDia => {
+                    html += `
+                        <div class="day-card">
+                            <div class="day-card-header">
+                                <i class="far fa-calendar-alt"></i> ${chaveDia === "Sem Data Fixada" ? chaveDia : "Dia " + formatarDataBR(chaveDia)}
+                            </div>
+                    `;
+                    dias[chaveDia].forEach(item => {
+                        const infoFinanceira = item.valor > 0 ? ` | Cost: ${item.moedaOriginal} ${item.valor}` : '';
+                        html += `
+                            <div class="day-activity-item">
+                                <div class="activity-meta">
+                                    <div class="activity-title">${item.desc || item.classe}</div>
+                                    <span class="activity-time"><i class="far fa-clock"></i> ${item.hora || '00:00'}</span>
+                                </div>
+                                <div class="activity-desc">Categoria: ${item.classe}${infoFinanceira} ${item.cidade ? ' - Local: ' + item.cidade : ''}</div>
+                            </div>
+                        `;
+                    });
+                    html += `</div>`;
+                });
+                container.innerHTML = html;
+            } else {
+                container.innerHTML = `<p style="color:var(--text-muted); font-size:13px; text-align:center; padding:20px;">Nenhuma atividade no ficheiro atual.</p>`;
+            }
+
+            // Bloco de Cálculos Financeiros — Gasto por Dia
+            const moeda = p.baseCurrency || "BRL";
+
+            const gastosPorDia = {};
+            const catsPorDia = {};
+
+            if (originalPremiumData.events) {
+                originalPremiumData.events.forEach(ev => {
+                    const v = parseFloat(ev.valor) || 0;
+                    if (v <= 0) return;
+                    const d = ev.data || "Sem Data";
+                    if (!gastosPorDia[d]) { gastosPorDia[d] = 0; catsPorDia[d] = {}; }
+                    gastosPorDia[d] += v;
+                    const cat = ev.classe || "Outros";
+                    catsPorDia[d][cat] = (catsPorDia[d][cat] || 0) + v;
+                });
+            }
+
+            const diasComGasto = Object.keys(gastosPorDia).sort();
+            const totalGeral = diasComGasto.reduce((s, d) => s + gastosPorDia[d], 0);
+            const maxDia = diasComGasto.length > 0 ? Math.max(...diasComGasto.map(d => gastosPorDia[d])) : 1;
+            const hojeStr = new Date().toISOString().split('T')[0];
+
+            const summaryBar = document.getElementById('finance-summary-bar');
+            const listEl = document.getElementById('day-spend-list');
+
+            if (diasComGasto.length === 0) {
+                summaryBar.style.display = 'none';
+                listEl.innerHTML = `<div class="finance-empty"><i class="fas fa-wallet"></i>Nenhuma despesa registrada ainda.</div>`;
+            } else {
+                summaryBar.style.display = 'flex';
+                document.getElementById('lbl-gasto-total').innerText = `${moeda} ${totalGeral.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+                document.getElementById('lbl-dias-count').innerText = diasComGasto.length;
+
+                listEl.innerHTML = diasComGasto.map(dia => {
+                    const total = gastosPorDia[dia];
+                    const pct = Math.round((total / maxDia) * 100);
+                    const isHoje = dia === hojeStr;
+                    const cats = Object.entries(catsPorDia[dia])
+                        .sort((a, b) => b[1] - a[1])
+                        .map(([cat, val]) => `<span class="day-cat-chip">${cat} · ${moeda} ${val.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>`)
+                        .join('');
+
+                    return `
+                    <div class="day-spend-card${isHoje ? ' today' : ''}">
+                        <div class="day-spend-row">
+                            <div class="day-spend-date">
+                                <i class="far fa-calendar-alt"></i>
+                                ${formatarDataBR(dia)}
+                                ${isHoje ? '<span class="today-badge">Hoje</span>' : ''}
+                            </div>
+                            <div class="day-spend-total">${moeda} ${total.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
+                        </div>
+                        <div class="day-spend-bar-bg">
+                            <div class="day-spend-bar-fill" style="width:${pct}%"></div>
+                        </div>
+                        ${cats ? `<div class="day-spend-cats">${cats}</div>` : ''}
+                    </div>`;
+                }).join('');
+            }
+        }
+        // ========== LINKS & ENDEREÇOS ==========
+
+        const linkCatConfig = {
+            'Consulado':   { emoji: '🏛️', bg: '#f0f4f8', color: '#2d5a3d' },
+            'Museu':       { emoji: '🖼️', bg: '#f9f2f4', color: '#8b4060' },
+            'Transporte':  { emoji: '🚌', bg: '#f1faf5', color: '#2d6b45' },
+            'Saúde':       { emoji: '🏥', bg: '#fff1f1', color: '#b91c1c' },
+            'Hotel':       { emoji: '🏨', bg: '#f9f2f4', color: '#7b3a5a' },
+            'Restaurante': { emoji: '🍽️', bg: '#fff5ed', color: '#c2600a' },
+            'Compras':     { emoji: '🛍️', bg: '#fdf2f2', color: '#9b2020' },
+            'Emergência':  { emoji: '🚨', bg: '#fee2e2', color: '#dc2626' },
+            'Outro':       { emoji: '📌', bg: '#f4f7f9', color: '#2d5a3d' },
+        };
+
+        function salvarLinksStorage() {
+            localStorage.setItem('valise_links_v1', JSON.stringify(linksData));
+        }
+
+        function selecionarCat(el) {
+            document.querySelectorAll('#link-cat-grid .link-cat-btn').forEach(b => b.classList.remove('selected'));
+            el.classList.add('selected');
+        }
+
+        function getCatSelecionada() {
+            const sel = document.querySelector('#link-cat-grid .link-cat-btn.selected');
+            return sel ? sel.dataset.val : 'Outro';
+        }
+
+        function setCatSelecionada(val) {
+            document.querySelectorAll('#link-cat-grid .link-cat-btn').forEach(b => {
+                b.classList.toggle('selected', b.dataset.val === val);
+            });
+        }
+
+        function abrirModalLink(id) {
+            document.getElementById('modal-link-titulo').textContent = id ? 'Editar Link' : 'Novo Link';
+            document.getElementById('link-edit-id').value = id || '';
+            
+            if (id) {
+                const link = linksData.find(l => l.id === id);
+                if (link) {
+                    document.getElementById('link-nome').value     = link.nome     || '';
+                    document.getElementById('link-endereco').value = link.endereco || '';
+                    document.getElementById('link-telefone').value = link.telefone || '';
+                    document.getElementById('link-url').value      = link.url      || '';
+                    document.getElementById('link-obs').value      = link.obs      || '';
+                    setCatSelecionada(link.cat || 'Outro');
+                }
+            } else {
+                document.getElementById('link-nome').value     = '';
+                document.getElementById('link-endereco').value = '';
+                document.getElementById('link-telefone').value = '';
+                document.getElementById('link-url').value      = '';
+                document.getElementById('link-obs').value      = '';
+                setCatSelecionada('Consulado');
+            }
+
+            document.getElementById('modal-link').classList.add('open');
+        }
+
+        function fecharModalLink(e) {
+            if (e && e.target !== document.getElementById('modal-link')) return;
+            document.getElementById('modal-link').classList.remove('open');
+        }
+
+        function salvarLink() {
+            const nome = document.getElementById('link-nome').value.trim();
+            if (!nome) { alert('Informe o nome ou local.'); return; }
+
+            const editId = document.getElementById('link-edit-id').value;
+            const entry = {
+                id:       editId || Date.now().toString(),
+                nome:     nome,
+                cat:      getCatSelecionada(),
+                endereco: document.getElementById('link-endereco').value.trim(),
+                telefone: document.getElementById('link-telefone').value.trim(),
+                url:      document.getElementById('link-url').value.trim(),
+                obs:      document.getElementById('link-obs').value.trim(),
+            };
+
+            if (editId) {
+                const idx = linksData.findIndex(l => l.id === editId);
+                if (idx > -1) linksData[idx] = entry; else linksData.push(entry);
+            } else {
+                linksData.push(entry);
+            }
+
+            salvarLinksStorage();
+            document.getElementById('modal-link').classList.remove('open');
+            renderizarLinks();
+        }
+
+        function excluirLink(id) {
+            if (!confirm('Excluir este item?')) return;
+            linksData = linksData.filter(l => l.id !== id);
+            salvarLinksStorage();
+            renderizarLinks();
+        }
+
+        function filtrarLinks(chipEl) {
+            document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+            chipEl.classList.add('active');
+            linkFiltroAtivo = chipEl.dataset.cat;
+            renderizarLinks();
+        }
+
+        function copiarTexto(texto, btn) {
+            navigator.clipboard.writeText(texto).catch(() => {
+                const ta = document.createElement('textarea');
+                ta.value = texto; document.body.appendChild(ta);
+                ta.select(); document.execCommand('copy');
+                document.body.removeChild(ta);
+            });
+            const orig = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check"></i>';
+            setTimeout(() => btn.innerHTML = orig, 1500);
+        }
+
+        function renderizarLinks() {
+            const container = document.getElementById('links-list');
+            if (!container) return;
+
+            const filtrados = linkFiltroAtivo
+                ? linksData.filter(l => l.cat === linkFiltroAtivo)
+                : linksData;
+
+            if (filtrados.length === 0) {
+                container.innerHTML = `
+                    <div class="links-empty">
+                        <i class="fas fa-map-pin"></i>
+                        ${linksData.length === 0
+                            ? 'Nenhum link cadastrado ainda.<br>Toque no <b>+</b> para adicionar.'
+                            : 'Nenhum item nesta categoria.'}
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = filtrados.map(l => {
+                const cfg = linkCatConfig[l.cat] || linkCatConfig['Outro'];
+                const mapUrl = l.endereco ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(l.endereco)}` : '';
+
+                const detalhes = [
+                    l.endereco ? `<div class="link-detail-row"><i class="fas fa-location-dot"></i><span>${l.endereco}</span></div>` : '',
+                    l.telefone ? `<div class="link-detail-row"><i class="fas fa-phone"></i><span>${l.telefone}</span></div>` : '',
+                    l.obs      ? `<div class="link-detail-row"><i class="fas fa-note-sticky"></i><span style="font-style:italic;">${l.obs}</span></div>` : '',
+                ].filter(Boolean).join('');
+
+                const acoes = [
+                    mapUrl  ? `<button class="btn-link-action btn-map"  onclick="window.open('${mapUrl}','_blank')"><i class="fas fa-map-location-dot"></i> Mapa</button>` : '',
+                    l.url   ? `<button class="btn-link-action btn-site" onclick="window.open('${l.url}','_blank')"><i class="fas fa-arrow-up-right-from-square"></i> Site</button>` : '',
+                    l.endereco ? `<button class="btn-link-action btn-edit" onclick="copiarTexto('${l.endereco.replace(/'/g,"\\'")}', this)"><i class="fas fa-copy"></i></button>` : '',
+                    `<button class="btn-link-action btn-edit"  onclick="abrirModalLink('${l.id}')"><i class="fas fa-pen"></i></button>`,
+                    `<button class="btn-link-action btn-del"   onclick="excluirLink('${l.id}')"><i class="fas fa-trash"></i></button>`,
+                ].filter(Boolean).join('');
+
+                return `
+                <div class="link-card">
+                    <div class="link-card-header">
+                        <div class="link-cat-badge" style="background:${cfg.bg};">${cfg.emoji}</div>
+                        <div class="link-card-name">${l.nome}</div>
+                        <span class="link-card-trip">${l.cat}</span>
+                    </div>
+                    ${detalhes ? `<div class="link-card-body">${detalhes}</div>` : ''}
+                    <div class="link-actions">${acoes}</div>
+                </div>`;
+            }).join('');
+        }
+
+    </script>
+</body>
+</html>
